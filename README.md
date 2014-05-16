@@ -18,6 +18,8 @@ func main() {
 	ss := listing.StringReplacer([]string{
 		"A", "B", "C", "D",
 	})
+	//You can use any types that implement listing.Replacer interface (Len(), Replace([]int))
+	
 
 	select_num := 3
 	repeatable := false
