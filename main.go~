@@ -1,0 +1,116 @@
+package listing
+
+import (
+
+//"fmt"
+)
+
+func Combination(list List, select_num int, buf int) (c chan List) {
+	c = make(chan List, buf)
+	index := make([]int, list.Len(), list.Len())
+	for i := 0; i < list.Len(); i++ {
+		index[i] = i
+	}
+
+	go func() {
+		defer close(c)
+		for index_comb := range combination(index, select_num, buf) {
+			c <- list.Replace(index_comb)
+		}
+	}()
+
+	return
+}
+
+func combination(list []int, select_num, buf int) (c chan []int) {
+	c = make(chan []int, buf)
+	go func() {
+		defer close(c)
+		if len(list) < select_num {
+			return
+		} else if len(list) == select_num {
+			c <- list
+			return
+		} else if select_num == 0 {
+			c <- []int{}
+			return
+		}
+		for i := 0; i < len(list); i++ {
+			//i番目選択
+			for sub_comb := range combination(list[i+1:], select_num-1, buf) {
+				c <- append([]int{list[i]}, sub_comb...)
+			}
+		}
+		return
+	}()
+
+	return
+}
+
+
+func repeated_combination(list []int, select_num, buf int) (c chan []int){
+  c = make(chan []int, buf)
+  go func(){
+    defer close(c)
+    if len(list) == select_num{
+      
+    }
+
+  }()
+}
+
+func Permute(list List, select_num, buf int) (c chan List) {
+	c = make(chan List, buf)
+	go func() {
+		defer close(c)
+
+		if list.Len() == select_num {
+			index := make([]int, select_num, select_num)
+			for i := 0; i < select_num; i++ {
+				index[i] = i
+			}
+			for perm_index := range permute(index, buf) {
+				c <- list.Replace(perm_index)
+			}
+		} else {
+			for conb := range Combination(list, select_num, buf) {
+				for perm := range Permute(conb, select_num, buf) {
+					c <- perm
+				}
+			}
+		}
+	}()
+	return
+}
+
+func pop(l []int, i int) (v int, sl []int) {
+	v = l[i]
+	length := len(l)
+	sl = make([]int, length-1, length-1)
+	copy(sl, l[:i])
+	copy(sl[i:], l[i+1:])
+	return
+}
+
+func permute(list []int, buf int) (c chan []int) {
+	c = make(chan []int, buf)
+	go func() {
+		defer close(c)
+		switch len(list) {
+		case 2:
+			c <- []int{list[0], list[1]}
+			c <- []int{list[1], list[0]}
+			return
+		default:
+			for i, _ := range list {
+				top, sl := pop(list, i)
+				for sub_result := range permute(sl, buf) {
+					result := append([]int{top}, sub_result...)
+					c <- result
+				}
+			}
+			return
+		}
+	}()
+	return
+}
