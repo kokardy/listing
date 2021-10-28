@@ -11,7 +11,7 @@ func TestPermStringSlice(t *testing.T) {
 	})
 	n := len(list)
 	m := 4
-	expected := P(n, m)
+	expected := pCount(n, m)
 	count := 0
 	for perm := range Permutations(list, m, false, buf) {
 		count++
@@ -30,7 +30,7 @@ func TestPermInt(t *testing.T) {
 	}
 	n := len(list)
 	m := 4
-	expected := P(n, m)
+	expected := pCount(n, m)
 	count := 0
 	for perm := range permutations(list, m, buf) {
 		count++
@@ -54,7 +54,7 @@ func TestRepeatedlyPermInt(t *testing.T) {
 		expected *= n
 	}
 	count := 0
-	for perm := range repeated_permutations(list, m, buf) {
+	for perm := range repeatedPermutations(list, m, buf) {
 		count++
 		//t.Log(count, comb)
 		_ = perm
