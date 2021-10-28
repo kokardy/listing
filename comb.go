@@ -1,23 +1,23 @@
 package listing
 
-//Combination generator
-func Combinations(list Replacer, select_num int, repeatable bool, buf int) (c chan Replacer) {
+// Combinations is generator of combinations
+func Combinations(list Replacer, selectNum int, repeatable bool, buf int) (c chan Replacer) {
 	c = make(chan Replacer, buf)
 	index := make([]int, list.Len(), list.Len())
 	for i := 0; i < list.Len(); i++ {
 		index[i] = i
 	}
 
-	var comb_generator func([]int, int, int) chan []int
+	var combGenerator func([]int, int, int) chan []int
 	if repeatable {
-		comb_generator = repeated_combinations
+		combGenerator = repeatedCombinations
 	} else {
-		comb_generator = combinations
+		combGenerator = combinations
 	}
 
 	go func() {
 		defer close(c)
-		for comb := range comb_generator(index, select_num, buf) {
+		for comb := range combGenerator(index, selectNum, buf) {
 			c <- list.Replace(comb)
 		}
 	}()
@@ -25,22 +25,22 @@ func Combinations(list Replacer, select_num int, repeatable bool, buf int) (c ch
 	return
 }
 
-//Combination generator for int slice
-func combinations(list []int, select_num, buf int) (c chan []int) {
+// combinations generator is for int slice
+func combinations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
 		switch {
-		case select_num == 0:
+		case selectNum == 0:
 			c <- []int{}
-		case select_num == len(list):
+		case selectNum == len(list):
 			c <- list
-		case len(list) < select_num:
+		case len(list) < selectNum:
 			return
 		default:
 			for i := 0; i < len(list); i++ {
-				for sub_comb := range combinations(list[i+1:], select_num-1, buf) {
-					c <- append([]int{list[i]}, sub_comb...)
+				for subComb := range combinations(list[i+1:], selectNum-1, buf) {
+					c <- append([]int{list[i]}, subComb...)
 				}
 			}
 		}
@@ -48,20 +48,20 @@ func combinations(list []int, select_num, buf int) (c chan []int) {
 	return
 }
 
-//Repeated combination generator for int slice
-func repeated_combinations(list []int, select_num, buf int) (c chan []int) {
+// repeatedCombination is generator for int slice
+func repeatedCombinations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
-		if select_num == 1 {
+		if selectNum == 1 {
 			for v := range list {
 				c <- []int{v}
 			}
 			return
 		}
 		for i := 0; i < len(list); i++ {
-			for sub_comb := range repeated_combinations(list[i:], select_num-1, buf) {
-				c <- append([]int{list[i]}, sub_comb...)
+			for subComb := range repeatedCombinations(list[i:], selectNum-1, buf) {
+				c <- append([]int{list[i]}, subComb...)
 			}
 		}
 	}()

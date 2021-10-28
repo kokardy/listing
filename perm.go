@@ -1,21 +1,21 @@
 package listing
 
-//Permutation generator
-func Permutations(list Replacer, select_num int, repeatable bool, buf int) (c chan Replacer) {
+// Permutations is generator
+func Permutations(list Replacer, selectNum int, repeatable bool, buf int) (c chan Replacer) {
 	c = make(chan Replacer, buf)
 	go func() {
 		defer close(c)
-		var perm_generator func([]int, int, int) chan []int
+		var permGenerator func([]int, int, int) chan []int
 		if repeatable {
-			perm_generator = repeated_permutations
+			permGenerator = repeatedPermutations
 		} else {
-			perm_generator = permutations
+			permGenerator = permutations
 		}
 		indices := make([]int, list.Len(), list.Len())
 		for i := 0; i < list.Len(); i++ {
 			indices[i] = i
 		}
-		for perm := range perm_generator(indices, select_num, buf) {
+		for perm := range permGenerator(indices, selectNum, buf) {
 			c <- list.Replace(perm)
 		}
 	}()
@@ -32,11 +32,11 @@ func pop(l []int, i int) (v int, sl []int) {
 }
 
 //Permtation generator for int slice
-func permutations(list []int, select_num, buf int) (c chan []int) {
+func permutations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
-		switch select_num {
+		switch selectNum {
 		case 1:
 			for _, v := range list {
 				c <- []int{v}
@@ -46,14 +46,14 @@ func permutations(list []int, select_num, buf int) (c chan []int) {
 			return
 		case len(list):
 			for i := 0; i < len(list); i++ {
-				top, sub_list := pop(list, i)
-				for perm := range permutations(sub_list, select_num-1, buf) {
+				top, subList := pop(list, i)
+				for perm := range permutations(subList, selectNum-1, buf) {
 					c <- append([]int{top}, perm...)
 				}
 			}
 		default:
-			for comb := range combinations(list, select_num, buf) {
-				for perm := range permutations(comb, select_num, buf) {
+			for comb := range combinations(list, selectNum, buf) {
+				for perm := range permutations(comb, selectNum, buf) {
 					c <- perm
 				}
 			}
@@ -63,18 +63,18 @@ func permutations(list []int, select_num, buf int) (c chan []int) {
 }
 
 //Repeated permtation generator for int slice
-func repeated_permutations(list []int, select_num, buf int) (c chan []int) {
+func repeatedPermutations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
-		switch select_num {
+		switch selectNum {
 		case 1:
 			for _, v := range list {
 				c <- []int{v}
 			}
 		default:
 			for i := 0; i < len(list); i++ {
-				for perm := range repeated_permutations(list, select_num-1, buf) {
+				for perm := range repeatedPermutations(list, selectNum-1, buf) {
 					c <- append([]int{list[i]}, perm...)
 				}
 			}
