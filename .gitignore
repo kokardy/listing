@@ -17,3 +17,6 @@ go.work.sum
 # Editor and OS temporary files
 *~
 .DS_Store
+
+# Local scratch / sample directory
+local/
