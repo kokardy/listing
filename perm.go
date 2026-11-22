@@ -1,8 +1,16 @@
 package listing
 
-// Permutations is generator
+// Permutations generates permutations of list elements and sends them on c.
 func Permutations(list Replacer, selectNum int, repeatable bool, buf int) (c chan Replacer) {
+	if buf < 0 {
+		buf = 0
+	}
 	c = make(chan Replacer, buf)
+	if list == nil {
+		close(c)
+		return c
+	}
+
 	go func() {
 		defer close(c)
 		var permGenerator func([]int, int, int) chan []int
@@ -11,7 +19,7 @@ func Permutations(list Replacer, selectNum int, repeatable bool, buf int) (c cha
 		} else {
 			permGenerator = permutations
 		}
-		indices := make([]int, list.Len(), list.Len())
+		indices := make([]int, list.Len())
 		for i := 0; i < list.Len(); i++ {
 			indices[i] = i
 		}
@@ -19,32 +27,32 @@ func Permutations(list Replacer, selectNum int, repeatable bool, buf int) (c cha
 			c <- list.Replace(perm)
 		}
 	}()
-	return
+	return c
 }
 
 func pop(l []int, i int) (v int, sl []int) {
 	v = l[i]
 	length := len(l)
-	sl = make([]int, length-1, length-1)
+	sl = make([]int, length-1)
 	copy(sl, l[:i])
 	copy(sl[i:], l[i+1:])
-	return
+	return v, sl
 }
 
-//Permtation generator for int slice
+// permutations generates non-repeating permutations of an int slice.
 func permutations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
-		switch selectNum {
-		case 1:
+		switch {
+		case selectNum <= 0 || selectNum > len(list):
+			return
+		case selectNum == 1:
 			for _, v := range list {
 				c <- []int{v}
 			}
 			return
-		case 0:
-			return
-		case len(list):
+		case selectNum == len(list):
 			for i := 0; i < len(list); i++ {
 				top, subList := pop(list, i)
 				for perm := range permutations(subList, selectNum-1, buf) {
@@ -59,16 +67,18 @@ func permutations(list []int, selectNum, buf int) (c chan []int) {
 			}
 		}
 	}()
-	return
+	return c
 }
 
-//Repeated permtation generator for int slice
+// repeatedPermutations generates repeating permutations of an int slice.
 func repeatedPermutations(list []int, selectNum, buf int) (c chan []int) {
 	c = make(chan []int, buf)
 	go func() {
 		defer close(c)
-		switch selectNum {
-		case 1:
+		switch {
+		case selectNum <= 0 || len(list) == 0:
+			return
+		case selectNum == 1:
 			for _, v := range list {
 				c <- []int{v}
 			}
@@ -80,5 +90,5 @@ func repeatedPermutations(list []int, selectNum, buf int) (c chan []int) {
 			}
 		}
 	}()
-	return
+	return c
 }
