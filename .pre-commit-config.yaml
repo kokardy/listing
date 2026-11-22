@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v4.0.1
+  rev: v5.0.0
   hooks:
   - id: trailing-whitespace
   - id: end-of-file-fixer
@@ -10,19 +10,39 @@ repos:
   - id: check-added-large-files
   - id: detect-private-key
 
-- repo: git://github.com/dnephin/pre-commit-golang
-  rev: master
+- repo: local
   hooks:
-  - id: go-fmt
+  - id: gofmt
+    name: gofmt
+    entry: bash -c 'unformatted=$(gofmt -l .); if [ -n "$unformatted" ]; then echo "Unformatted files:"; echo "$unformatted"; exit 1; fi'
+    language: system
+    types: [go]
+    pass_filenames: false
+
   - id: go-vet
-  - id: go-lint
-  - id: go-imports
-  # - id: go-cyclo
-    # args: [-over=15]
-  - id: validate-toml
-  - id: no-go-testing
-  # - id: golangci-lint
-  # - id: go-critic
-  - id: go-unit-tests
-  - id: go-build
-  - id: go-mod-tidy
+    name: go vet (v1)
+    entry: go vet ./...
+    language: system
+    types: [go]
+    pass_filenames: false
+
+  - id: go-vet-v2
+    name: go vet (v2)
+    entry: bash -c '[ ! -d v2 ] || (cd v2 && go vet ./...)'
+    language: system
+    types: [go]
+    pass_filenames: false
+
+  - id: go-test
+    name: go test -race (v1)
+    entry: go test -race ./...
+    language: system
+    types: [go]
+    pass_filenames: false
+
+  - id: go-test-v2
+    name: go test -race (v2)
+    entry: bash -c '[ ! -d v2 ] || (cd v2 && go test -race ./...)'
+    language: system
+    types: [go]
+    pass_filenames: false
